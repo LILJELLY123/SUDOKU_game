@@ -1,52 +1,38 @@
 import tkinter as tk
+from tkinter import messagebox
+import random
 
 class Sudoku:
-    def __init__(self, master):
-        self.master = master
-        master.title("Судоку")
-        self.grid_size = 9
-        self.cell_size = 40
-        self.create_widgets()
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Судоку")
+        self.grid = [[0 for _ in range(9)] for _ in range(9)]
+        self.create_grid()
+        self.fill_grid()
 
-    def create_widgets(self):
-        self.grid = []
-        for i in range(self.grid_size):
-            row = []
-            for j in range(self.grid_size):
-                cell = tk.Entry(self.master, width=2,
-                                justify='center',
-                                font=('Arial', 20),
-                                validate="key",
-                                validatecommand=(self.master.register(self.validate_input), '%P', i, j))
-                cell.grid(row=i, column=j, padx=1, pady=1)
-                row.append(cell)
-            self.grid.append(row)
+    def create_grid(self):
+        for i in range(9):
+            for j in range(9):
+                entry = tk.Entry(self.root, width=3, font=('Arial', 18), justify='center')
+                entry.grid(row=i, column=j, padx=5, pady=5)
+                entry.bind("<KeyRelease>", self.validate_input)
+                self.grid[i][j] = entry
 
-    def check_3x3(self, row, col, value):
-        block_row = row // 3 * 3
-        block_col = col // 3 * 3
+    def fill_grid(self):
+        numbers = list(range(1, 10))
+        for i in range(9):
+            random.shuffle(numbers)
+            for j in range(9):
+                self.grid[i][j].insert(0, numbers[j])
+                self.grid[i][j].config(state='readonly')  #ячейки только для чтения
 
-        for i in range(block_row, block_row + 3):
-            for j in range(block_col, block_col + 3):
-                if (i, j) != (row, col) and self.grid[i][j].get() == str(value):
-                    return False  
-        return True  # Значение уникально в блоке 3x3
+    def validate_input(self, event):
+        widget = event.widget
+        if widget.get() not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '']:
+            widget.delete(0, tk.END)
+            messagebox.showerror("Ошибка", "Введите число от 1 до 9")
 
-    def validate_input(self, P, row, col):
-        if not P.isdigit() or not 1 <= int(P) <= 9:
-            return False
-
-        value = int(P)
-        for i in range(self.grid_size):
-            if i != col and self.grid[row][i].get() == str(value):
-                return False
-            if i != row and self.grid[i][col].get() == str(value):
-                return False
-        if not self.check_3x3(row, col, value):
-            return False
-
-        return True
-
-root = tk.Tk()
-game = Sudoku(root)
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    sudoku_game = Sudoku(root)
+    root.mainloop()
