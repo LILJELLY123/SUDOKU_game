@@ -20,11 +20,13 @@ class Sudoku:
 
     def fill_grid(self):
         numbers = list(range(1, 10))
-        for i in range(9):
-            random.shuffle(numbers)
-            for j in range(9):
-                self.grid[i][j].insert(0, numbers[j])
-                self.grid[i][j].config(state='readonly')  #ячейки только для чтения
+        filled_cells = random.sample(range(81), 10)  # 10 ячеек для заполнения
+
+        for index in filled_cells:
+            i, j = divmod(index, 9)  # Преобразуем индекс в координаты (i, j)
+            number = random.choice(numbers)  # Выбираем случайное число от 1 до 9
+            self.grid[i][j].insert(0, number)
+            self.grid[i][j].config(state='readonly')  #ячейка только для чтения
 
     def validate_input(self, event):
         widget = event.widget
