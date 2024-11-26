@@ -1,23 +1,52 @@
 import tkinter as tk
 
 class Sudoku:
-    def __int__(self,master):
-        self.master=master
+    def __init__(self, master):
+        self.master = master
         master.title("Судоку")
-        self.grid_size=9
-        self.cell_size=40
+        self.grid_size = 9
+        self.cell_size = 40
         self.create_widgets()
 
     def create_widgets(self):
-        self.grid=[]
+        self.grid = []
         for i in range(self.grid_size):
-            row=[]
+            row = []
             for j in range(self.grid_size):
-                cell = tk.Entry(self.master,width=2,
+                cell = tk.Entry(self.master, width=2,
                                 justify='center',
-                                font=('Arial',20),
+                                font=('Arial', 20),
                                 validate="key",
-validatecommand=(self.master.register(self.validate_input), '%P', i, j))
+                                validatecommand=(self.master.register(self.validate_input), '%P', i, j))
                 cell.grid(row=i, column=j, padx=1, pady=1)
                 row.append(cell)
             self.grid.append(row)
+
+    def check_3x3(self, row, col, value):
+        block_row = row // 3 * 3
+        block_col = col // 3 * 3
+
+        for i in range(block_row, block_row + 3):
+            for j in range(block_col, block_col + 3):
+                if (i, j) != (row, col) and self.grid[i][j].get() == str(value):
+                    return False  
+        return True  # Значение уникально в блоке 3x3
+
+    def validate_input(self, P, row, col):
+        if not P.isdigit() or not 1 <= int(P) <= 9:
+            return False
+
+        value = int(P)
+        for i in range(self.grid_size):
+            if i != col and self.grid[row][i].get() == str(value):
+                return False
+            if i != row and self.grid[i][col].get() == str(value):
+                return False
+        if not self.check_3x3(row, col, value):
+            return False
+
+        return True
+
+root = tk.Tk()
+game = Sudoku(root)
+root.mainloop()
