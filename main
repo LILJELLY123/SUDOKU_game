@@ -13,7 +13,7 @@ class Sudoku:
     def create_grid(self):
         for i in range(9):
             for j in range(9):
-                entry = tk.Entry(self.root, width=3, font=('Arial', 18), justify='center')
+                entry = tk.Entry(self.root, width=3, font=('Times New Roman', 18), justify='center')
                 entry.grid(row=i, column=j, padx=5, pady=5)
                 entry.bind("<KeyRelease>", self.validate_input)
                 self.grid[i][j] = entry
