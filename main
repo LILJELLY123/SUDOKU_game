@@ -37,7 +37,7 @@ class Sudoku:
         for number in numbers:
             if self.is_safe(row, col, number):
                 self.grid[row][col] = number
-                if self.fill_grid():  
+                if self.fill_grid():
                     return True
                 self.grid[row][col] = 0  # Если не удалось заполнить, сбрасываем
 
@@ -81,10 +81,41 @@ class Sudoku:
         try:
             value = int(widget.get())
             row, col = widget.grid_info()['row'], widget.grid_info()['column']
-            if self.is_safe(row, col, value):
-                widget.config(bg='lightgreen')  # Зеленый цвет для правильного ответа
-            else:
-                widget.config(bg='lightcoral')  # Красный цвет для неправильного ответа
+
+            # Сначала сбрасываем цвета для всех ячеек
+            for i in range(9):
+                for j in range(9):
+                    current_value = self.entries[i][j].get()
+                    if current_value != "":
+                        if self.is_safe(i, j, int(current_value)):
+                            self.entries[i][j].config(bg='lightgreen')  # Зеленый для правильного
+                        else:
+                            self.entries[i][j].config(bg='lightcoral')  # Красный для неправильного
+                    # Проверяем на дубликаты в строках и столбцах
+                    for i in range(9):
+                        if i != row and self.entries[i][col].get() == str(value):
+                            self.entries[i][col].config(bg='lightcoral')  # Красный цвет для дубликата в столбце
+                        if i != col and self.entries[row][i].get() == str(value):
+                            self.entries[row][i].config(bg='lightcoral')  # Красный цвет для дубликата в строке
+
+                    # Проверяем на дубликаты в квадрате 3x3
+                    start_row, start_col = 3 * (row // 3), 3 * (col // 3)
+                    square_has_duplicate = False
+
+                    for i in range(start_row, start_row + 3):
+                        for j in range(start_col, start_col + 3):
+                            if (i != row or j != col) and self.entries[i][j].get() == str(value):
+                                square_has_duplicate = True
+                    # Проверяем, является ли введенное значение безопасным
+                    widget = event.widget
+                    if widget.get() not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '']:
+                        widget.delete(0, tk.END)
+                        messagebox.showerror("Ошибка", "Введите число от 1 до 9")
+                    elif self.is_safe(row, col, value):
+                        widget.config(bg='lightgreen')  # Зеленый цвет для правильного ответа
+                    else:
+                        widget.config(bg='lightcoral')  # Красный цвет для неправильного ответа
+
         except ValueError:
             widget.config(bg='white')  # Если не число, сбрасываем цвет
 
