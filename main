@@ -7,8 +7,10 @@ class Sudoku:
         self.root = root
         self.root.title("Судоку")
         self.grid = [[0 for _ in range(9)] for _ in range(9)]
+        self.entries = [[None for _ in range(9)] for _ in range(9)]
         self.create_grid()
-        self.fill_grid()
+        self.generate_sudoku()
+        self.remove_numbers()
 
     def create_grid(self):
         for i in range(9):
@@ -16,23 +18,75 @@ class Sudoku:
                 entry = tk.Entry(self.root, width=3, font=('Times New Roman', 18), justify='center')
                 entry.grid(row=i, column=j, padx=5, pady=5)
                 entry.bind("<KeyRelease>", self.validate_input)
-                self.grid[i][j] = entry
+                self.entries[i][j] = entry
+
+    def generate_sudoku(self):
+        if not self.fill_grid():
+            messagebox.showerror("Ошибка", "Не удалось сгенерировать Судоку.")
+            return
 
     def fill_grid(self):
-        numbers = list(range(1, 10))
-        filled_cells = random.sample(range(81), 10)  # 10 ячеек для заполнения
+        empty_cell = self.find_empty_cell()
+        if not empty_cell:
+            return True  # Все ячейки заполнены
 
-        for index in filled_cells:
-            i, j = divmod(index, 9)  # Преобразуем индекс в координаты (i, j)
-            number = random.choice(numbers)  # Выбираем случайное число от 1 до 9
-            self.grid[i][j].insert(0, number)
-            self.grid[i][j].config(state='readonly')  #ячейка только для чтения
+        row, col = empty_cell
+        numbers = list(range(1, 10))
+        random.shuffle(numbers)  # Перемешиваем числа
+
+        for number in numbers:
+            if self.is_safe(row, col, number):
+                self.grid[row][col] = number
+                if self.fill_grid():  
+                    return True
+                self.grid[row][col] = 0  # Если не удалось заполнить, сбрасываем
+
+        return False  # Если ни одно число не подошло
+
+    def find_empty_cell(self):
+        for i in range(9):
+            for j in range(9):
+                if self.grid[i][j] == 0:
+                    return (i, j)  # Возвращаем первую пустую ячейку
+        return None  # Если пустых ячеек нет
+
+    def is_safe(self, row, col, num):
+        for x in range(9):
+            if self.grid[row][x] == num or self.grid[x][col] == num:
+                return False
+        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
+        for i in range(start_row, start_row + 3):
+            for j in range(start_col, start_col + 3):
+                if self.grid[i][j] == num:
+                    return False
+        return True
+
+    def remove_numbers(self):
+        count = random.randint(40, 60)
+        while count != 0:
+            i = random.randint(0, 8)
+            j = random.randint(0, 8)
+            if self.grid[i][j] != 0:
+                self.grid[i][j] = 0
+                count -= 1
+
+        for i in range(9):
+            for j in range(9):
+                if self.grid[i][j] != 0:
+                    self.entries[i][j].insert(0, self.grid[i][j])
+                    self.entries[i][j].config(state='readonly')  #ячейка только для чтения
 
     def validate_input(self, event):
         widget = event.widget
-        if widget.get() not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '']:
-            widget.delete(0, tk.END)
-            messagebox.showerror("Ошибка", "Введите число от 1 до 9")
+        try:
+            value = int(widget.get())
+            row, col = widget.grid_info()['row'], widget.grid_info()['column']
+            if self.is_safe(row, col, value):
+                widget.config(bg='lightgreen')  # Зеленый цвет для правильного ответа
+            else:
+                widget.config(bg='lightcoral')  # Красный цвет для неправильного ответа
+        except ValueError:
+            widget.config(bg='white')  # Если не число, сбрасываем цвет
 
 if __name__ == "__main__":
     root = tk.Tk()
